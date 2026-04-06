@@ -1,0 +1,23 @@
+# IBC config template — credentials injected at runtime from macOS Keychain.
+# See: https://github.com/IbcAlpha/IBC/blob/master/userguide.md
+
+FIX=no
+
+# Credentials are set by launcher.py — leave blank here.
+IbLoginId=
+IbPassword=
+TradingMode=paper
+
+AcceptIncomingConnectionAction=accept
+AcceptNonBrokerageAccountWarning=yes
+AllowBlindTrading=yes
+DismissPasswordExpiryWarning=yes
+DismissNSEComplianceNotice=yes
+ExistingSessionDetectedAction=primaryoverride
+ReadOnlyLogin=no
+StoreSettingsOnServer=no
+MinimizeMainWindow=yes
+
+OverrideTwsApiPort=4002
+
+LogToConsole=yes
