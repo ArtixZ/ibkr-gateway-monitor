@@ -56,39 +56,57 @@ def _write_runtime_config() -> Path:
     return config_path
 
 
+def _pgrep(pattern: str) -> set[int]:
+    """Return PIDs matching a case-insensitive full-command-line pattern."""
+    try:
+        result = subprocess.run(
+            ["pgrep", "-fi", pattern],
+            capture_output=True, text=True, timeout=5)
+        return {int(p) for p in result.stdout.split() if p.strip().isdigit()}
+    except Exception:
+        return set()
+
+
 def find_gateway_pids() -> list[int]:
+    """Find Java Gateway processes."""
     pids: set[int] = set()
     for pattern in ["ibgateway", "IB Gateway", "IBGateway"]:
-        try:
-            result = subprocess.run(
-                ["pgrep", "-fi", pattern],
-                capture_output=True, text=True, timeout=5)
-            for line in result.stdout.strip().splitlines():
-                if line.strip().isdigit():
-                    pids.add(int(line.strip()))
-        except Exception:
-            pass
+        pids |= _pgrep(pattern)
+    pids.discard(os.getpid())
+    return sorted(pids)
+
+
+def find_all_ibc_pids() -> list[int]:
+    """Find all IBC-related processes: ibcstart.sh, launch.sh, and Java Gateway."""
+    pids: set[int] = set()
+    for pattern in ["ibgateway", "IB Gateway", "IBGateway",
+                     "ibcstart", "ibkr-gateway/launch.sh"]:
+        pids |= _pgrep(pattern)
     pids.discard(os.getpid())
     return sorted(pids)
 
 
 def stop_gateway() -> None:
-    pids = find_gateway_pids()
+    pids = find_all_ibc_pids()
     if not pids:
-        logger.info("No Gateway processes running")
+        logger.info("No Gateway/IBC processes running")
         return
-    logger.info("Stopping Gateway PIDs: %s", pids)
+    logger.info("Stopping IBC/Gateway PIDs: %s", pids)
     for pid in pids:
         try:
             os.kill(pid, signal.SIGTERM)
         except ProcessLookupError:
             pass
     time.sleep(5)
-    for pid in pids:
-        try:
-            os.kill(pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
+    remaining = find_all_ibc_pids()
+    if remaining:
+        logger.warning("Force-killing remaining PIDs: %s", remaining)
+        for pid in remaining:
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        time.sleep(1)
 
 
 def start_gateway() -> bool:
