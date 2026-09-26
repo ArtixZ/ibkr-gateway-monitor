@@ -1,4 +1,13 @@
-# IBKR Gateway Monitor
+# IBKR Gateway Monitor (archived)
+
+> [!IMPORTANT]
+> **This project has moved to [gatewayctl](https://github.com/ArtixZ/ibkr-gateway-rs).**
+> Use the successor repository for installation, development, and support.
+> This repository is archived and retained for historical reference.
+>
+> **Do not run this legacy monitor alongside gatewayctl.** Its broad
+> process-matching restart logic can terminate the new paper and live Gateways.
+> The documentation below describes the retired implementation.
 
 Monitors IB Gateway health and automatically restarts it via [IBC](https://github.com/IbcAlpha/IBC) when it crashes. IBC handles the login dialog so no manual credential entry is needed.
 
